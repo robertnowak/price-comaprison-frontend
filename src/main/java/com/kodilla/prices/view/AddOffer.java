@@ -19,42 +19,37 @@ import javax.money.CurrencyUnit;
 @Route("addOffer")
 public class AddOffer extends FormLayout {
 
-    private final OfferService offerService;
+    private final transient OfferService offerService;
 
-    private AmazonOfferDto amazonOfferDto = new AmazonOfferDto();
+    private transient AmazonOfferDto amazonOfferDto = new AmazonOfferDto();
 
     @PropertyId("asin")
-    private TextField asin = new TextField("Asin");
-
-    @PropertyId("userId")
-    private TextField userIdField = new TextField("Owner id");
+    private final TextField asin = new TextField("Asin");
 
     @PropertyId("targetPrice")
-    private NumberField targetPriceField = new NumberField("Alert price");
+    private final NumberField targetPriceField = new NumberField("Alert price");
 
     @PropertyId("targetCurrency")
-    private Select<CurrencyUnit> currencySelectField = new Select<>();
+    private final Select<CurrencyUnit> currencySelectField = new Select<>();
 
-    private Button save = new Button("Save");
+    private final Button save = new Button("Save");
 
-    private Binder<AmazonOfferDto> binder = new Binder<>(AmazonOfferDto.class);
+    private final Binder<AmazonOfferDto> binder = new Binder<>(AmazonOfferDto.class);
 
 
     public AddOffer(OfferService offerService) {
         this.offerService = offerService;
 
-        HorizontalLayout fields = new HorizontalLayout(asin, userIdField, targetPriceField, currencySelectField);
+        HorizontalLayout fields = new HorizontalLayout(asin, targetPriceField, currencySelectField);
 
         HorizontalLayout buttons = new HorizontalLayout(save);
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.addClickListener(event -> save());
 
-
         currencySelectField.setLabel("Currency");
         currencySelectField.setItems(SupportedCurrencies.CURRENCIES);
 
         binder.bindInstanceFields(this);
-
 
         add(fields, buttons);
     }
@@ -62,23 +57,12 @@ public class AddOffer extends FormLayout {
     private void save() {
         try {
             binder.writeBean(amazonOfferDto);
-            offerService.addOffer(amazonOfferDto.toDomain());
+            offerService.addOrUpdateOffer(amazonOfferDto.toDomain());
             save.getUI().flatMap(ui -> ui.navigate(OfferList.class));
         } catch (ValidationException e) {
             throw new RuntimeException(e);
         }
 
-    }
-
-    private void setOfferDto(AmazonOfferDto amazonOfferDto) {
-        binder.setBean(amazonOfferDto);
-
-        if (amazonOfferDto == null) {
-            setVisible(false);
-        } else {
-            setVisible(true);
-            asin.focus();
-        }
     }
 
     public void setAmazonOfferDto(AmazonOfferDto amazonOfferDto) {

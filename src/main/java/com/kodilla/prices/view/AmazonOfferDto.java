@@ -4,18 +4,18 @@ import com.kodilla.prices.domain.offer.AmazonOffer;
 import org.javamoney.moneta.FastMoney;
 
 import javax.money.CurrencyUnit;
+import javax.money.MonetaryAmount;
 
 public class AmazonOfferDto {
 
-
+    private String id;
     private String asin;
-    private String userId;
     private Double targetPrice;
     private CurrencyUnit targetCurrency;
 
-    public AmazonOfferDto(String asin, String userId, Double targetPrice, CurrencyUnit targetCurrency) {
+    public AmazonOfferDto(String id, String asin, Double targetPrice, CurrencyUnit targetCurrency) {
+        this.id = id;
         this.asin = asin;
-        this.userId = userId;
         this.targetPrice = targetPrice;
         this.targetCurrency = targetCurrency;
     }
@@ -24,7 +24,15 @@ public class AmazonOfferDto {
     }
 
     public AmazonOfferDto(AmazonOffer amazonOffer) {
-        this(amazonOffer.asin(), amazonOffer.userID(), amazonOffer.targetPrice().getNumber().doubleValue(), amazonOffer.targetPrice().getCurrency());
+        this(amazonOffer.id(), amazonOffer.asin(), amazonOffer.targetPrice().getNumber().doubleValue(), amazonOffer.targetPrice().getCurrency());
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getAsin() {
@@ -33,14 +41,6 @@ public class AmazonOfferDto {
 
     public void setAsin(String asin) {
         this.asin = asin;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public Double getTargetPrice() {
@@ -61,8 +61,11 @@ public class AmazonOfferDto {
 
     public AmazonOffer toDomain() {
         return new AmazonOffer(
+                id,
                 asin,
-                userId,
+                null,
+                null,
+                null,
                 FastMoney.of(targetPrice, targetCurrency.getCurrencyCode())
         );
     }

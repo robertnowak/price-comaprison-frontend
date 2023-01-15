@@ -36,7 +36,8 @@ public class OfferList extends VerticalLayout {
         asinFilter.addValueChangeListener(e -> applyAsinFilter());
 
         offerGrid.addColumn(AmazonOffer::asin).setHeader("Asin").setSortable(true);
-        offerGrid.addColumn(AmazonOffer::userID).setHeader("Owner id");
+        offerGrid.addColumn(AmazonOffer::title).setHeader("Title").setSortable(true);
+        offerGrid.addColumn(AmazonOffer::currentPrice).setHeader("Current price");
         offerGrid.addColumn(AmazonOffer::targetPrice).setHeader("Alert price").setSortable(true);
 
         offerGrid.addComponentColumn(offer -> {
@@ -49,22 +50,23 @@ public class OfferList extends VerticalLayout {
             return editButton;
         }).setWidth("150px").setFlexGrow(0);
 
-        addButton.addClickListener(event -> {
-            addButton.getUI()
-                    .flatMap(ui -> ui.navigate(AddOffer.class));
-        });
+        offerGrid.addComponentColumn(offer -> {
+            Button deleteButton = new Button("Delete");
+            deleteButton.addClickListener(event -> {
+                offerService.delete(offer.id());
+                refresh();
+            });
+            return deleteButton;
+        }).setWidth("150px").setFlexGrow(0);
+
+        addButton.addClickListener(event ->
+                addButton.getUI()
+                        .flatMap(ui -> ui.navigate(AddOffer.class)));
 
         add(asinFilter, offerGrid, addButton);
 
-
-
         setSizeFull();
         refresh();
-    }
-
-    private static Renderer<AmazonOffer> createActionRenderer() {
-        return LitRenderer.of(
-                "<vaadin-button theme=\"tertiary-inline\">Edit</vaadin-button>");
     }
 
     private void applyAsinFilter() {

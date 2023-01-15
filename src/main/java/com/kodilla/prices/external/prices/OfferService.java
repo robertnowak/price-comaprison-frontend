@@ -5,34 +5,67 @@ import org.apache.commons.lang3.RandomUtils;
 import org.javamoney.moneta.FastMoney;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
 public class OfferService {
     //todo connect via rest to backend
-    private final List<AmazonOffer> offers = new ArrayList(IntStream.range(0, 3).mapToObj(i -> sampleOffer()).toList());
+    private final Map<String, AmazonOffer> offers = new HashMap<>(IntStream.range(0, 3).mapToObj(i -> sampleOffer()).collect(Collectors.toMap(AmazonOffer::id, Function.identity())));
 
     public List<AmazonOffer> getOffers() {
-        return offers;
+        return offers.values().stream().map(offer ->
+                new AmazonOffer(offer.id(),
+                        offer.asin(),
+                        "a title"  + stringId(), //it's from db, not kept in frontend so I mock it on read
+                        money("EUR"),
+                        stringId(),
+                        offer.targetPrice()
+                        )).sorted(Comparator.comparing(AmazonOffer::asin)).toList();
     }
 
-    public void addOffer(AmazonOffer amazonOffer) {
-        offers.add(amazonOffer);
+    public void addOrUpdateOffer(AmazonOffer amazonOffer) {
+        if (amazonOffer.id() == null) {
+            storeInDatabase(amazonOffer);
+        } else {
+            updateInDatabase(amazonOffer);
+        }
     }
 
-    public AmazonOffer getOffer(String id) {
-        return offers.get(0);
+    private void updateInDatabase(AmazonOffer amazonOffer) {
+        offers.put(amazonOffer.id(), amazonOffer);
+    }
+
+    private void storeInDatabase(AmazonOffer amazonOffer) {
+        AmazonOffer newOffer = new AmazonOffer(stringId(), amazonOffer.asin(), amazonOffer.title(), money("USD"), amazonOffer.ownerId(), amazonOffer.targetPrice());
+        offers.put(newOffer.id(), newOffer);
     }
 
     private AmazonOffer sampleOffer() {
-        return new AmazonOffer("ABCD-" + RandomUtils.nextInt(), RandomUtils.nextInt() + "", FastMoney.of(RandomUtils.nextInt(0, 100), "PLN"));
+        return new AmazonOffer(stringId(),
+                "ASIN-" + RandomUtils.nextInt(),
+                "a title " + stringId(),
+                money("EUR"),
+                "owner" + stringId(),
+                money("PLN"));
+    }
+
+    private static FastMoney money(String currency) {
+        return FastMoney.of(RandomUtils.nextInt(0, 100), currency);
+    }
+
+    private static String stringId() {
+        return UUID.randomUUID().toString().substring(0, 10);
     }
 
     public Collection<AmazonOffer> findByAsin(String asin) {
-        return offers.stream().filter(it -> it.asin().contains(asin)).toList();
+        return offers.values().stream().filter(amazonOffer -> amazonOffer.asin().contains(asin)).toList();
+    }
+
+    public void delete(String offerId) {
+        offers.remove(offerId);
     }
 }
 
