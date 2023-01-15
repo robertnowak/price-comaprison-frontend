@@ -65,7 +65,6 @@ public class AmazonOfferDto {
                 asin,
                 null,
                 null,
-                null,
                 FastMoney.of(targetPrice, targetCurrency.getCurrencyCode())
         );
     }

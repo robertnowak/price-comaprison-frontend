@@ -3,6 +3,7 @@ package com.kodilla.prices.external.prices;
 import com.kodilla.prices.domain.offer.AmazonOffer;
 import org.apache.commons.lang3.RandomUtils;
 import org.javamoney.moneta.FastMoney;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -12,8 +13,19 @@ import java.util.stream.IntStream;
 
 @Service
 public class OfferService {
+
+    private final OffersClient offersClient;
+
+    public OfferService(@Autowired OffersClient offersClient) {
+        this.offersClient = offersClient;
+    }
+
     //todo connect via rest to backend
     private final Map<String, AmazonOffer> offers = new HashMap<>(IntStream.range(0, 3).mapToObj(i -> sampleOffer()).collect(Collectors.toMap(AmazonOffer::id, Function.identity())));
+
+    public List<AmazonOffer> getOffersFromActualDb() {
+        return offersClient.getOffers();
+    }
 
     public List<AmazonOffer> getOffers() {
         return offers.values().stream().map(offer ->
@@ -21,10 +33,10 @@ public class OfferService {
                         offer.asin(),
                         "a title"  + stringId(), //it's from db, not kept in frontend so I mock it on read
                         money("EUR"),
-                        stringId(),
                         offer.targetPrice()
                         )).sorted(Comparator.comparing(AmazonOffer::asin)).toList();
     }
+
 
     public void addOrUpdateOffer(AmazonOffer amazonOffer) {
         if (amazonOffer.id() == null) {
@@ -39,7 +51,7 @@ public class OfferService {
     }
 
     private void storeInDatabase(AmazonOffer amazonOffer) {
-        AmazonOffer newOffer = new AmazonOffer(stringId(), amazonOffer.asin(), amazonOffer.title(), money("USD"), amazonOffer.ownerId(), amazonOffer.targetPrice());
+        AmazonOffer newOffer = new AmazonOffer(stringId(), amazonOffer.asin(), amazonOffer.title(), money("USD"), amazonOffer.targetPrice());
         offers.put(newOffer.id(), newOffer);
     }
 
@@ -48,7 +60,6 @@ public class OfferService {
                 "ASIN-" + RandomUtils.nextInt(),
                 "a title " + stringId(),
                 money("EUR"),
-                "owner" + stringId(),
                 money("PLN"));
     }
 

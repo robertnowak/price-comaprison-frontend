@@ -1,0 +1,7 @@
+server:
+  port : 8081
+
+offers:
+  client:
+    url: http://targeturl:8080
+
