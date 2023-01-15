@@ -38,7 +38,7 @@ public class AmazonOfferDto {
                 asin,
                 title,
                 FastMoney.of(currentPrice, "USD"),
-                FastMoney.of(targetPrice, "PLN")
+                targetPrice != null ? FastMoney.of(targetPrice, "PLN") : null
         );
     }
 

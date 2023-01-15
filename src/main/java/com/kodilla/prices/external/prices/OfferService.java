@@ -28,15 +28,8 @@ public class OfferService {
     }
 
     public List<AmazonOffer> getOffers() {
-        return offers.values().stream().map(offer ->
-                new AmazonOffer(offer.id(),
-                        offer.asin(),
-                        "a title"  + stringId(), //it's from db, not kept in frontend so I mock it on read
-                        money("EUR"),
-                        offer.targetPrice()
-                        )).sorted(Comparator.comparing(AmazonOffer::asin)).toList();
+       return offersClient.getOffers();
     }
-
 
     public void addOrUpdateOffer(AmazonOffer amazonOffer) {
         if (amazonOffer.id() == null) {
