@@ -28,7 +28,7 @@ public class OfferService {
     }
 
     public List<AmazonOffer> getOffers() {
-       return offersClient.getOffers();
+        return offersClient.getOffers();
     }
 
     public void addOrUpdateOffer(AmazonOffer amazonOffer) {
@@ -40,12 +40,11 @@ public class OfferService {
     }
 
     private void updateInDatabase(AmazonOffer amazonOffer) {
-        offers.put(amazonOffer.id(), amazonOffer);
+        offersClient.addOffer(AmazonOfferDto.fromDomain(amazonOffer));
     }
 
     private void storeInDatabase(AmazonOffer amazonOffer) {
-        AmazonOffer newOffer = new AmazonOffer(stringId(), amazonOffer.asin(), amazonOffer.title(), money("USD"), amazonOffer.targetPrice());
-        offers.put(newOffer.id(), newOffer);
+        offersClient.addOffer(AmazonOfferDto.fromDomain(amazonOffer));
     }
 
     private AmazonOffer sampleOffer() {
