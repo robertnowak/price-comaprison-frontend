@@ -2,10 +2,6 @@ package com.kodilla.prices.external.prices;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kodilla.prices.domain.offer.AmazonOffer;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.javamoney.moneta.FastMoney;
 
 import java.math.BigDecimal;
@@ -24,6 +20,7 @@ public class AmazonOfferDto {
         this.targetPrice = targetPrice;
     }
 
+    @JsonProperty("id")
     private String id;
     @JsonProperty("asin")
     private String asin;
@@ -38,19 +35,19 @@ public class AmazonOfferDto {
     private BigDecimal targetPrice;
 
     public static AmazonOfferDto fromDomain(AmazonOffer amazonOffer) {
-      return  new AmazonOfferDto(
-              amazonOffer.id(),
-              amazonOffer.asin(),
-              amazonOffer.title(),
-              null,
+        return new AmazonOfferDto(
+                amazonOffer.id(),
+                amazonOffer.asin(),
+                amazonOffer.title(),
+                null,
 
-              amazonOffer.targetPrice().getCurrency().getCurrencyCode(),
-              BigDecimal.valueOf(amazonOffer.targetPrice().getNumber().doubleValue())
-      );
+                amazonOffer.targetPrice().getCurrency().getCurrencyCode(),
+                BigDecimal.valueOf(amazonOffer.targetPrice().getNumber().doubleValue())
+        );
     }
 
 
-    public AmazonOffer toDomain(){
+    public AmazonOffer toDomain() {
         return new AmazonOffer(
                 id,
                 asin,

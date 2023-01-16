@@ -20,13 +20,6 @@ public class OfferService {
         this.offersClient = offersClient;
     }
 
-    //todo connect via rest to backend
-    private final Map<String, AmazonOffer> offers = new HashMap<>(IntStream.range(0, 3).mapToObj(i -> sampleOffer()).collect(Collectors.toMap(AmazonOffer::id, Function.identity())));
-
-    public List<AmazonOffer> getOffersFromActualDb() {
-        return offersClient.getOffers();
-    }
-
     public List<AmazonOffer> getOffers() {
         return offersClient.getOffers();
     }
@@ -47,28 +40,12 @@ public class OfferService {
         offersClient.addOffer(AmazonOfferDto.fromDomain(amazonOffer));
     }
 
-    private AmazonOffer sampleOffer() {
-        return new AmazonOffer(stringId(),
-                "ASIN-" + RandomUtils.nextInt(),
-                "a title " + stringId(),
-                money("EUR"),
-                money("PLN"));
-    }
-
-    private static FastMoney money(String currency) {
-        return FastMoney.of(RandomUtils.nextInt(0, 100), currency);
-    }
-
-    private static String stringId() {
-        return UUID.randomUUID().toString().substring(0, 10);
-    }
-
     public Collection<AmazonOffer> findByAsin(String asin) {
-        return offers.values().stream().filter(amazonOffer -> amazonOffer.asin().contains(asin)).toList();
+        return getOffers().stream().filter(amazonOffer -> amazonOffer.asin().contains(asin)).toList();
     }
 
     public void delete(String offerId) {
-        offers.remove(offerId);
+        offersClient.delete(offerId);
     }
 }
 
