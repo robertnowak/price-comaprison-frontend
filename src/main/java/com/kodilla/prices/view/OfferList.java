@@ -59,6 +59,19 @@ public class OfferList extends VerticalLayout {
             return deleteButton;
         }).setWidth("150px").setFlexGrow(0);
 
+
+
+        offerGrid.addComponentColumn(offer -> {
+            Button refreshButton = new Button("Refresh");
+            refreshButton.addClickListener(event -> {
+                offerService.refresh(offer.asin());
+                refresh();
+            });
+            return refreshButton;
+        }).setWidth("150px").setFlexGrow(0);
+
+
+
         addButton.addClickListener(event ->
                 addButton.getUI()
                         .flatMap(ui -> ui.navigate(AddOffer.class)));

@@ -9,11 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -49,11 +49,21 @@ public class OffersClient {
     }
 
     public void addOffer(AmazonOfferDto amazonOfferDto) {
+        send(
+                baseUrl().queryParam("id", amazonOfferDto.getAsin())
+                        .queryParam("userId", "123") //logged user id
+                        .queryParam("targetPrice", amazonOfferDto.getTargetPrice().toString()),
+                "POST",
+                jsonBodyPublisher(amazonOfferDto),
+                HttpResponse.BodyHandlers.discarding()
+        );
+    }
+
+    private HttpRequest.BodyPublisher jsonBodyPublisher(Object dto) {
         try {
-            HttpClient.newHttpClient()
-                    .send(createRequestForAddOffers(amazonOfferDto), HttpResponse.BodyHandlers.discarding());
-        } catch (Exception e) {
-            logger.error("Cannot add offers", e);
+            return HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(dto));
+        } catch (JsonProcessingException e) {
+            throw new RestClientException("error performing json conversion of " + dto, e);
         }
     }
 
@@ -76,39 +86,42 @@ public class OffersClient {
         }
     }
 
-    private HttpRequest createRequestForAddOffers(AmazonOfferDto amazonOfferDto) {
-        try {
-            return HttpRequest.newBuilder()
-                    .uri(new URIBuilder(offersUrl).setPath("/v1/amazon")
-                            .addParameter("id", amazonOfferDto.getAsin())
-                            .addParameter("userId", "123")
-                            .addParameter("targetPrice", amazonOfferDto.getTargetPrice().toString())
-                            .build())
-                    .method("POST", HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(amazonOfferDto)))
-                    .build();
-        } catch (URISyntaxException | JsonProcessingException e) {
-            throw new RestClientException("error adding offers", e);
-        }
-    }
-
     public void delete(String offerId) {
+        send(baseUrl().pathSegment("deleteOffer", offerId), "DELETE");
+    }
+
+    public void refresh(String asin) {
+        send(baseUrl().pathSegment("refreshPrice", asin), "PATCH");
+    }
+
+    private Void send(UriComponentsBuilder uriComponentsBuilder, String method, HttpRequest.BodyPublisher bodyPublisher) {
+        return send(uriComponentsBuilder, method, bodyPublisher, HttpResponse.BodyHandlers.discarding());
+    }
+
+
+    private Void send(UriComponentsBuilder uriComponentsBuilder, String method) {
+        return send(uriComponentsBuilder, method, HttpRequest.BodyPublishers.noBody(), HttpResponse.BodyHandlers.discarding());
+    }
+
+
+    private <T> T send(UriComponentsBuilder uriComponentsBuilder, String method, HttpRequest.BodyPublisher bodyPublisher, HttpResponse.BodyHandler<T> bodyHandler) {
+        URI uri = uriComponentsBuilder.build().toUri();
         try {
-            HttpClient.newHttpClient()
-                    .send(createRequestDeleteOffer(offerId), HttpResponse.BodyHandlers.ofString());
+            T responseBody = HttpClient.newHttpClient()
+                    .send(HttpRequest.newBuilder(uri)
+                                    .method(method, bodyPublisher)
+                                    .build(),
+                            bodyHandler)
+                    .body();
+
+            logger.info("Sending request to {} , ended with {}", uri, responseBody);
+            return responseBody;
         } catch (Exception e) {
-            throw new RestClientException("error deleting offers", e);
+            throw new RestClientException("error performing request", e);
         }
     }
 
-    private HttpRequest createRequestDeleteOffer(String offerId) {
-        try {
-            return HttpRequest.newBuilder()
-                    .uri(new URIBuilder(offersUrl).setPath("/v1/amazon/deleteOffer/" + offerId)
-                            .build())
-                    .method("DELETE", HttpRequest.BodyPublishers.noBody())
-                    .build();
-        } catch (URISyntaxException e) {
-            throw new RestClientException("error deleting offers", e);
-        }
+    private UriComponentsBuilder baseUrl() {
+        return UriComponentsBuilder.fromHttpUrl(offersUrl).path("/v1/amazon");
     }
 }

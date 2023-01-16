@@ -47,5 +47,9 @@ public class OfferService {
     public void delete(String offerId) {
         offersClient.delete(offerId);
     }
+
+    public void refresh(String asin) {
+        offersClient.refresh(asin);
+    }
 }
 
