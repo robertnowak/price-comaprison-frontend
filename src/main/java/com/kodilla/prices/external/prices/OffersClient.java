@@ -94,6 +94,10 @@ public class OffersClient {
         send(baseUrl().pathSegment("refreshPrice", asin), "PATCH");
     }
 
+    public void refreshAll() {
+        send(baseUrl().pathSegment("refreshPrices"), "PATCH");
+    }
+
     private Void send(UriComponentsBuilder uriComponentsBuilder, String method, HttpRequest.BodyPublisher bodyPublisher) {
         return send(uriComponentsBuilder, method, bodyPublisher, HttpResponse.BodyHandlers.discarding());
     }
@@ -124,4 +128,6 @@ public class OffersClient {
     private UriComponentsBuilder baseUrl() {
         return UriComponentsBuilder.fromHttpUrl(offersUrl).path("/v1/amazon");
     }
+
+
 }

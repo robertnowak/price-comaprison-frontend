@@ -2,13 +2,13 @@ package com.kodilla.prices.view;
 
 import com.kodilla.prices.domain.offer.AmazonOffer;
 import com.kodilla.prices.external.prices.OfferService;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.renderer.LitRenderer;
-import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +27,8 @@ public class OfferList extends VerticalLayout {
     private final Grid<AmazonOffer> offerGrid = new Grid<>(AmazonOffer.class);
 
     private final Button addButton = new Button("Add new");
+
+    private final Button refreshAllButton = new Button("Refresh all");
 
     public OfferList(@Autowired OfferService offerService) {
         this.offerService = offerService;
@@ -60,7 +62,6 @@ public class OfferList extends VerticalLayout {
         }).setWidth("150px").setFlexGrow(0);
 
 
-
         offerGrid.addComponentColumn(offer -> {
             Button refreshButton = new Button("Refresh");
             refreshButton.addClickListener(event -> {
@@ -70,16 +71,24 @@ public class OfferList extends VerticalLayout {
             return refreshButton;
         }).setWidth("150px").setFlexGrow(0);
 
+        Component bottomButtons = bottomButtons(offerService);
+        refresh();
 
+        add(asinFilter, offerGrid, bottomButtons);
 
+        setSizeFull();
+        refresh();
+    }
+
+    private Component bottomButtons(OfferService offerService) {
+        HorizontalLayout buttonLayout = new HorizontalLayout();
         addButton.addClickListener(event ->
                 addButton.getUI()
                         .flatMap(ui -> ui.navigate(AddOffer.class)));
 
-        add(asinFilter, offerGrid, addButton);
-
-        setSizeFull();
-        refresh();
+        refreshAllButton.addClickListener(event -> offerService.refreshAll());
+        buttonLayout.add(addButton, refreshAllButton);
+        return buttonLayout;
     }
 
     private void applyAsinFilter() {

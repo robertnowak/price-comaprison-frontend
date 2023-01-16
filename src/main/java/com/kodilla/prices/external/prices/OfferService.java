@@ -51,5 +51,9 @@ public class OfferService {
     public void refresh(String asin) {
         offersClient.refresh(asin);
     }
+
+    public void refreshAll() {
+        offersClient.refreshAll();
+    }
 }
 
