@@ -86,7 +86,10 @@ public class OfferList extends VerticalLayout {
                 addButton.getUI()
                         .flatMap(ui -> ui.navigate(AddOffer.class)));
 
-        refreshAllButton.addClickListener(event -> offerService.refreshAll());
+        refreshAllButton.addClickListener(event -> {
+            offerService.refreshAll();
+            refresh();
+        });
         buttonLayout.add(addButton, refreshAllButton);
         return buttonLayout;
     }
